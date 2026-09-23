@@ -1,0 +1,3267 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+
+    <meta charset="utf-8">
+
+    <title>Center Advisor Chat</title>
+
+    <style>
+
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: "Segoe UI", Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background: #f3f4f6;
+            color: #242424;
+        }
+
+        .container {
+            max-width: 950px;
+            margin: auto;
+            background: #ffffff;
+            border-radius: 14px;
+            overflow: hidden;
+            box-shadow: 0 4px 18px rgba(0, 0, 0, 0.08);
+            border: 1px solid #e5e7eb;
+        }
+
+
+        /* =====================================================
+           HEADER
+           ===================================================== */
+
+        .header {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 18px 22px;
+            background: #ffffff;
+            border-bottom: 1px solid #e5e7eb;
+        }
+
+        .assistant-icon {
+            width: 42px;
+            height: 42px;
+            border-radius: 50%;
+            background: #2563eb;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 21px;
+        }
+
+        .header-content {
+            flex: 1;
+        }
+
+        .header-title {
+            font-size: 17px;
+            font-weight: 600;
+            margin: 0;
+        }
+
+        .header-subtitle {
+            font-size: 12px;
+            color: #6b7280;
+            margin-top: 3px;
+        }
+
+        .status-indicator {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 12px;
+            color: #15803d;
+        }
+
+        .status-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: #22c55e;
+        }
+
+
+        /* =====================================================
+           CENTER CONTEXT
+           ===================================================== */
+
+        .context-bar {
+            display: none;
+            padding: 8px 22px;
+            background: #f8fafc;
+            border-bottom: 1px solid #e5e7eb;
+            font-size: 12px;
+            color: #64748b;
+        }
+
+        .context-bar.visible {
+            display: block;
+        }
+
+        .context-name {
+            font-weight: 600;
+            color: #334155;
+        }
+
+
+        /* =====================================================
+           CHAT AREA
+           ===================================================== */
+
+        #chat {
+            height: 480px;
+            overflow-y: auto;
+            padding: 22px;
+            background: #f8fafc;
+            scroll-behavior: smooth;
+        }
+
+        #chat::-webkit-scrollbar {
+            width: 7px;
+        }
+
+        #chat::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 10px;
+        }
+
+        #chat::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+
+        /* =====================================================
+           MESSAGE ROW
+           ===================================================== */
+
+        .message-row {
+            display: flex;
+            margin-bottom: 16px;
+            width: 100%;
+        }
+
+        .message-row.user-row {
+            justify-content: flex-end;
+        }
+
+        .message-row.assistant-row {
+            justify-content: flex-start;
+        }
+
+
+        /* =====================================================
+           CHAT BUBBLES
+           ===================================================== */
+
+        .message-bubble {
+            max-width: 680px;
+            padding: 11px 15px;
+            border-radius: 14px;
+            line-height: 1.55;
+            font-size: 14px;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+        }
+
+        .user-bubble {
+            background: #2563eb;
+            color: #ffffff;
+            border-bottom-right-radius: 4px;
+        }
+
+        .assistant-bubble {
+            background: #ffffff;
+            color: #1f2937;
+            border: 1px solid #e2e8f0;
+            border-bottom-left-radius: 4px;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+        }
+
+
+        /* =====================================================
+           MESSAGE META
+           ===================================================== */
+
+        .message-meta {
+            font-size: 10px;
+            color: #94a3b8;
+            margin-top: 4px;
+        }
+
+        .user-row .message-meta {
+            text-align: right;
+        }
+
+        .assistant-row .message-meta {
+            text-align: left;
+        }
+
+
+        /* =====================================================
+           ASSISTANT AVATAR
+           ===================================================== */
+
+        .assistant-message-wrapper {
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
+    max-width: 720px;
+}
+
+        .small-assistant-icon {
+            width: 28px;
+            height: 28px;
+            min-width: 28px;
+            border-radius: 50%;
+            background: #2563eb;
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 14px;
+            margin-top: 1px;
+        }
+
+
+        /* =====================================================
+           TYPING INDICATOR
+           ===================================================== */
+
+        .typing-bubble {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            padding: 13px 16px;
+        }
+
+        .typing-dot {
+            width: 6px;
+            height: 6px;
+            background: #94a3b8;
+            border-radius: 50%;
+            animation: typing 1.4s infinite ease-in-out;
+        }
+
+        .typing-dot:nth-child(1) {
+            animation-delay: 0s;
+        }
+
+        .typing-dot:nth-child(2) {
+            animation-delay: 0.2s;
+        }
+
+        .typing-dot:nth-child(3) {
+            animation-delay: 0.4s;
+        }
+
+        @keyframes typing {
+
+            0%,
+            60%,
+            100% {
+                transform: translateY(0);
+                opacity: 0.5;
+            }
+
+            30% {
+                transform: translateY(-4px);
+                opacity: 1;
+            }
+        }
+
+
+        /* =====================================================
+           SCORE CARD
+           ===================================================== */
+
+        .score-card {
+            margin: 8px 0 18px 36px;
+            max-width: 600px;
+            background: #ffffff;
+            border: 1px solid #e2e8f0;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.04);
+        }
+
+        .score-card-header {
+            padding: 12px 15px;
+            font-size: 13px;
+            font-weight: 600;
+            border-bottom: 1px solid #e5e7eb;
+            background: #f8fafc;
+        }
+
+        .score-card-body {
+            padding: 13px 15px;
+        }
+
+        .score-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 7px 0;
+            font-size: 13px;
+            border-bottom: 1px solid #f1f5f9;
+        }
+
+        .score-item:last-child {
+            border-bottom: none;
+        }
+
+        .score-label {
+            color: #64748b;
+        }
+
+        .score-value {
+            font-weight: 600;
+            color: #1e293b;
+        }
+
+        .score-divider {
+            margin: 10px 0;
+            border: none;
+            border-top: 1px solid #e2e8f0;
+        }
+
+
+        /* =====================================================
+           CRM UPDATE MESSAGE
+           ===================================================== */
+
+        .crm-update {
+            margin: 4px 0 18px 36px;
+            font-size: 12px;
+            color: #15803d;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+
+        /* =====================================================
+           INPUT AREA
+           ===================================================== */
+
+        .input-container {
+            padding: 15px 18px;
+            background: #ffffff;
+            border-top: 1px solid #e5e7eb;
+        }
+
+        .input-area {
+            display: flex;
+            gap: 9px;
+            align-items: center;
+        }
+
+        #userInput {
+            flex: 1;
+            padding: 12px 14px;
+            border: 1px solid #cbd5e1;
+            border-radius: 9px;
+            font-size: 14px;
+            font-family: "Segoe UI", Arial, sans-serif;
+            outline: none;
+            transition: border-color 0.2s, box-shadow 0.2s;
+        }
+
+        #userInput:focus {
+            border-color: #2563eb;
+            box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.12);
+        }
+
+        #userInput::placeholder {
+            color: #94a3b8;
+        }
+
+        button {
+            padding: 12px 20px;
+            border: none;
+            border-radius: 9px;
+            cursor: pointer;
+            background: #2563eb;
+            color: white;
+            font-weight: 600;
+            font-size: 14px;
+            transition: background 0.2s;
+        }
+
+        button:hover:not(:disabled) {
+            background: #1d4ed8;
+        }
+
+        button:disabled {
+            opacity: 0.55;
+            cursor: not-allowed;
+        }
+
+        .input-hint {
+            font-size: 10px;
+            color: #94a3b8;
+            margin-top: 7px;
+            text-align: right;
+        }
+
+
+        /* =====================================================
+           WELCOME MESSAGE
+           ===================================================== */
+
+        .welcome-text {
+            color: #334155;
+        }
+
+        .welcome-title {
+    font-weight: 600;
+    color: #1e293b;
+    margin-bottom: 7px;
+}
+
+.welcome-description {
+    color: #475569;
+    line-height: 1.5;
+}
+
+.welcome-prompt {
+    margin-top: 10px;
+    color: #64748b;
+    font-size: 13px;
+}
+
+    </style>
+
+</head>
+
+
+<body>
+
+<div class="container">
+
+
+    <!-- =====================================================
+         HEADER
+         ===================================================== -->
+
+    <div class="header">
+
+        <div class="assistant-icon">
+            🤖
+        </div>
+
+        <div class="header-content">
+
+            <div class="header-title">
+                Center Advisor
+            </div>
+
+            <div class="header-subtitle">
+                Child Care Center Support Assistant
+            </div>
+
+        </div>
+
+        <div class="status-indicator">
+
+            <span class="status-dot"></span>
+
+            Online
+
+        </div>
+
+    </div>
+
+
+    <!-- =====================================================
+         CENTER CONTEXT
+         ===================================================== -->
+
+    <div
+        id="contextBar"
+        class="context-bar"
+    >
+
+        Current center:
+
+        <span
+            id="contextName"
+            class="context-name"
+        ></span>
+
+    </div>
+
+
+    <!-- =====================================================
+         CHAT
+         ===================================================== -->
+
+    <div id="chat">
+
+        <div class="message-row assistant-row">
+
+            <div class="assistant-message-wrapper">
+
+                <div class="small-assistant-icon">
+                    🤖
+                </div>
+
+                <div>
+
+                    <div class="message-bubble assistant-bubble welcome-text">
+
+    <div class="welcome-title">
+        Hello! I’m your Center Advisor.
+    </div>
+
+    <div class="welcome-description">
+        I can help you with center details, training, goals,
+        trainer visits, funding, and support needs.
+    </div>
+
+    <div class="welcome-prompt">
+        To get started, mention a center name and ask your question.
+    </div>
+
+</div>
+
+                    <div class="message-meta">
+                        Center Advisor
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <!-- =====================================================
+         INPUT
+         ===================================================== -->
+
+    <div class="input-container">
+
+        <div class="input-area">
+
+            <input
+                type="text"
+                id="userInput"
+                placeholder="Ask about a child care center..."
+                onkeydown="handleKey(event)"
+                autocomplete="off"
+            >
+
+            <button
+                id="sendButton"
+                onclick="sendMessage()"
+            >
+                Send
+            </button>
+
+        </div>
+
+        <div class="input-hint">
+            Press Enter to send
+        </div>
+
+    </div>
+
+</div>
+
+
+<script>
+
+
+// ============================================================
+// AZURE FUNCTION URL
+// ============================================================
+
+// Paste your existing AnalyzeCenterChat Function URL here.
+//
+// Do not expose the Function Key publicly.
+//
+
+var functionUrl = "";
+
+
+// ============================================================
+// CURRENT CENTER CONTEXT
+// ============================================================
+
+var currentSite = null;
+
+var currentSiteId = null;
+
+
+// ============================================================
+// FORMAT AI RESPONSE
+// ============================================================
+//
+// Removes Markdown formatting that makes the response look
+// like a report instead of a conversational assistant.
+//
+
+function cleanAIResponse(text) {
+
+    if (!text) {
+        return "";
+    }
+
+    var cleaned = text;
+
+    // Remove Markdown headings
+    cleaned = cleaned.replace(/^#{1,6}\s*/gm, "");
+
+    // Remove bold / italic markers
+    cleaned = cleaned.replace(/\*\*/g, "");
+    cleaned = cleaned.replace(/__/g, "");
+    cleaned = cleaned.replace(/(?<!\w)\*(?!\s)/g, "");
+
+    // Remove common AI labels
+    cleaned = cleaned.replace(
+        /^\s*(AI Analysis|AI Assistant|Assistant|Analysis)\s*:\s*/gim,
+        ""
+    );
+
+    // Remove excessive blank lines
+    cleaned = cleaned.replace(/\n{3,}/g, "\n\n");
+
+    return cleaned.trim();
+}
+
+
+// ============================================================
+// CURRENT TIME
+// ============================================================
+
+function getCurrentTime() {
+
+    var now = new Date();
+
+    return now.toLocaleTimeString(
+        [],
+        {
+            hour: "2-digit",
+            minute: "2-digit"
+        }
+    );
+
+}
+
+
+// ============================================================
+// CHAT MESSAGE
+// ============================================================
+
+function addMessage(sender, message) {
+
+    var chat =
+        document.getElementById("chat");
+
+
+    var row =
+        document.createElement("div");
+
+
+    var isUser =
+        sender === "You";
+
+
+    row.className =
+        "message-row " +
+        (
+            isUser
+                ? "user-row"
+                : "assistant-row"
+        );
+
+
+    if (isUser) {
+
+        var userWrapper =
+            document.createElement("div");
+
+
+        userWrapper.style.maxWidth =
+            "75%";
+
+
+        var userBubble =
+            document.createElement("div");
+
+
+        userBubble.className =
+            "message-bubble user-bubble";
+
+
+        userBubble.textContent =
+            message;
+
+
+        var userMeta =
+            document.createElement("div");
+
+
+        userMeta.className =
+            "message-meta";
+
+
+        userMeta.textContent =
+            getCurrentTime();
+
+
+        userWrapper.appendChild(
+            userBubble
+        );
+
+        userWrapper.appendChild(
+            userMeta
+        );
+
+        row.appendChild(
+            userWrapper
+        );
+
+    }
+    else {
+
+        var assistantWrapper =
+            document.createElement("div");
+
+
+        assistantWrapper.className =
+            "assistant-message-wrapper";
+
+
+        var icon =
+            document.createElement("div");
+
+
+        icon.className =
+            "small-assistant-icon";
+
+
+        icon.textContent =
+            "🤖";
+
+
+        var contentWrapper =
+            document.createElement("div");
+
+
+        var assistantBubble =
+            document.createElement("div");
+
+
+        assistantBubble.className =
+            "message-bubble assistant-bubble";
+
+
+        assistantBubble.textContent =
+            cleanAIResponse(message);
+
+
+        var assistantMeta =
+            document.createElement("div");
+
+
+        assistantMeta.className =
+            "message-meta";
+
+
+        assistantMeta.textContent =
+            "Center Advisor · " +
+            getCurrentTime();
+
+
+        contentWrapper.appendChild(
+            assistantBubble
+        );
+
+        contentWrapper.appendChild(
+            assistantMeta
+        );
+
+
+        assistantWrapper.appendChild(
+            icon
+        );
+
+        assistantWrapper.appendChild(
+            contentWrapper
+        );
+
+
+        row.appendChild(
+            assistantWrapper
+        );
+
+    }
+
+
+    chat.appendChild(
+        row
+    );
+
+
+    chat.scrollTop =
+        chat.scrollHeight;
+
+}
+
+
+// ============================================================
+// SHOW TYPING INDICATOR
+// ============================================================
+
+function showThinkingMessage() {
+
+    var chat =
+        document.getElementById("chat");
+
+
+    var row =
+        document.createElement("div");
+
+
+    row.id =
+        "thinkingMessage";
+
+
+    row.className =
+        "message-row assistant-row";
+
+
+    var wrapper =
+        document.createElement("div");
+
+
+    wrapper.className =
+        "assistant-message-wrapper";
+
+
+    var icon =
+        document.createElement("div");
+
+
+    icon.className =
+        "small-assistant-icon";
+
+
+    icon.textContent =
+        "🤖";
+
+
+    var bubble =
+        document.createElement("div");
+
+
+    bubble.className =
+        "message-bubble assistant-bubble typing-bubble";
+
+
+    for (
+        var i = 0;
+        i < 3;
+        i++
+    ) {
+
+        var dot =
+            document.createElement("span");
+
+
+        dot.className =
+            "typing-dot";
+
+
+        bubble.appendChild(
+            dot
+        );
+
+    }
+
+
+    wrapper.appendChild(
+        icon
+    );
+
+    wrapper.appendChild(
+        bubble
+    );
+
+
+    row.appendChild(
+        wrapper
+    );
+
+
+    chat.appendChild(
+        row
+    );
+
+
+    chat.scrollTop =
+        chat.scrollHeight;
+
+}
+
+
+// ============================================================
+// REMOVE THINKING MESSAGE
+// ============================================================
+
+function removeThinkingMessage() {
+
+    var thinking =
+        document.getElementById(
+            "thinkingMessage"
+        );
+
+
+    if (thinking) {
+
+        thinking.remove();
+
+    }
+
+}
+
+
+// ============================================================
+// ENTER KEY
+// ============================================================
+
+function handleKey(event) {
+
+    if (
+        event.key === "Enter" &&
+        !event.shiftKey
+    ) {
+
+        event.preventDefault();
+
+        sendMessage();
+
+    }
+
+}
+
+
+// ============================================================
+// UPDATE CENTER CONTEXT
+// ============================================================
+
+function updateCenterContext(siteName) {
+
+    var contextBar =
+        document.getElementById(
+            "contextBar"
+        );
+
+
+    var contextName =
+        document.getElementById(
+            "contextName"
+        );
+
+
+    if (siteName) {
+
+        contextName.textContent =
+            siteName;
+
+        contextBar.classList.add(
+            "visible"
+        );
+
+    }
+
+}
+
+
+// ============================================================
+// FIND CENTER FROM USER MESSAGE
+// ============================================================
+
+async function findSiteFromMessage(message) {
+
+    var result =
+        await window.parent.Xrm.WebApi
+            .retrieveMultipleRecords(
+                "new_childcaresite",
+                "?$select=new_sitename,new_childcaresiteid"
+            );
+
+
+    var lowerMessage =
+        message.toLowerCase();
+
+
+    for (
+        var i = 0;
+        i < result.entities.length;
+        i++
+    ) {
+
+        var site =
+            result.entities[i];
+
+
+        var siteName =
+            site.new_sitename || "";
+
+
+        if (
+            siteName &&
+            lowerMessage.includes(
+                siteName.toLowerCase()
+            )
+        ) {
+
+            return site;
+
+        }
+
+    }
+
+
+    return null;
+
+}
+
+
+// ============================================================
+// GET BASIC SITE DATA
+// ============================================================
+
+async function getSiteData(siteId) {
+
+    var cleanSiteId =
+        siteId.replace(
+            /[{}]/g,
+            ""
+        );
+
+
+    var result =
+        await window.parent.Xrm.WebApi
+            .retrieveRecord(
+                "new_childcaresite",
+                cleanSiteId,
+                "?$select=" +
+                "new_sitename," +
+                "new_sitestatus," +
+                "new_capacity," +
+                "new_currentenrollment"
+            );
+
+
+    return result;
+
+}
+
+
+// ============================================================
+// GET TRAINING DATA
+// ============================================================
+
+async function getTrainingData(siteId) {
+
+    var cleanSiteId =
+        siteId.replace(
+            /[{}]/g,
+            ""
+        );
+
+
+    var query =
+        "?$select=" +
+        "new_name," +
+        "new_trainingid," +
+        "new_trainingcompletion," +
+        "new_trainingassessment," +
+        "new_trainingapplication," +
+        "new_trainingstatus" +
+        "&$filter=_new_childcaresite_value eq " +
+        cleanSiteId;
+
+
+    var result =
+        await window.parent.Xrm.WebApi
+            .retrieveMultipleRecords(
+                "new_training",
+                query
+            );
+
+
+    return result.entities;
+
+}
+
+
+// ============================================================
+// GET GOALS DATA
+// ============================================================
+
+async function getGoalsData(siteId) {
+
+    var cleanSiteId =
+        siteId.replace(
+            /[{}]/g,
+            ""
+        );
+
+
+    var query =
+        "?$select=" +
+        "new_name," +
+        "new_goaltarget," +
+        "new_goalachievement," +
+        "new_previousgoalachievement," +
+        "new_goalstatus" +
+        "&$filter=_new_childcaresite_value eq " +
+        cleanSiteId;
+
+
+    var result =
+        await window.parent.Xrm.WebApi
+            .retrieveMultipleRecords(
+                "new_goals",
+                query
+            );
+
+
+    return result.entities;
+
+}
+
+
+// ============================================================
+// GET TRAINER VISITS / SUPPORT DATA
+// ============================================================
+
+async function getTrainerVisits(siteId) {
+
+    var cleanSiteId =
+        siteId.replace(
+            /[{}]/g,
+            ""
+        );
+
+
+    var query =
+        "?$select=" +
+        "new_trainername," +
+        "new_unresolvedissues," +
+        "new_followuprequired," +
+        "new_followupdate" +
+        "&$filter=_new_childcaresite_value eq " +
+        cleanSiteId;
+
+
+    var result =
+        await window.parent.Xrm.WebApi
+            .retrieveMultipleRecords(
+                "new_trainervisit",
+                query
+            );
+
+
+    return result.entities;
+
+}
+
+
+// ============================================================
+// GET FUNDING DATA
+// ============================================================
+
+async function getFundingData(siteId) {
+
+    var cleanSiteId =
+        siteId.replace(
+            /[{}]/g,
+            ""
+        );
+
+
+    var query =
+        "?$select=" +
+        "new_name," +
+        "new_fundingreceived," +
+        "new_fundingutilized," +
+        "new_fundingutilization," +
+        "new_fundingpurpose" +
+        "&$filter=_new_childcaresite_value eq " +
+        cleanSiteId;
+
+
+    var result =
+        await window.parent.Xrm.WebApi
+            .retrieveMultipleRecords(
+                "new_funding",
+                query
+            );
+
+
+    return result.entities;
+
+}
+
+
+// ============================================================
+// DETERMINE QUESTION TYPE
+// ============================================================
+
+function detectQuestionType(message) {
+
+    var text =
+        message.toLowerCase();
+
+
+    // Analysis
+
+    if (
+        text.includes("analyze") ||
+        text.includes("analysis") ||
+        text.includes("assessment") ||
+        text.includes("priority score") ||
+        text.includes("priority") ||
+        text.includes("impact score") ||
+        text.includes("score")
+    ) {
+
+        return "analysis";
+
+    }
+
+
+    // Trainer
+
+    if (
+        text.includes("trainer") ||
+        text.includes("trainers") ||
+        text.includes("visit") ||
+        text.includes("visits")
+    ) {
+
+        return "trainer";
+
+    }
+
+
+    // Support
+
+    if (
+        text.includes("issue") ||
+        text.includes("issues") ||
+        text.includes("open") ||
+        text.includes("follow-up") ||
+        text.includes("follow up") ||
+        text.includes("support")
+    ) {
+
+        return "support";
+
+    }
+
+
+    // Training
+
+    if (
+        text.includes("training") ||
+        text.includes("course") ||
+        text.includes("completion")
+    ) {
+
+        return "training";
+
+    }
+
+
+    // Goals
+
+    if (
+        text.includes("goal") ||
+        text.includes("goals") ||
+        text.includes("progress")
+    ) {
+
+        return "goals";
+
+    }
+
+
+    // Funding
+
+    if (
+        text.includes("funding") ||
+        text.includes("fund") ||
+        text.includes("utilization") ||
+        text.includes("utilized")
+    ) {
+
+        return "funding";
+
+    }
+
+
+    return "general";
+
+}
+
+
+// ============================================================
+// CALCULATE CENTER SCORES
+// ============================================================
+
+function calculateScores(
+    trainingRecords,
+    goalsRecords,
+    visitRecords,
+    fundingRecords
+) {
+
+    // ========================================================
+    // GOAL RISK
+    // ========================================================
+
+    var goalRisk = 0;
+
+    var averageGap = 0;
+
+    var averageImprovement = 0;
+
+
+    if (
+        goalsRecords.length > 0
+    ) {
+
+        var totalGap = 0;
+
+        var totalAchievement = 0;
+
+        var totalPreviousAchievement = 0;
+
+        var atRiskCount = 0;
+
+
+        goalsRecords.forEach(
+            function (goal) {
+
+                var target =
+                    Number(
+                        goal.new_goaltarget || 0
+                    );
+
+
+                var achievement =
+                    Number(
+                        goal.new_goalachievement || 0
+                    );
+
+
+                var previousAchievement =
+                    Number(
+                        goal.new_previousgoalachievement || 0
+                    );
+
+
+                var gap =
+                    target -
+                    achievement;
+
+
+                totalGap +=
+                    gap;
+
+
+                totalAchievement +=
+                    achievement;
+
+
+                totalPreviousAchievement +=
+                    previousAchievement;
+
+
+                if (
+                    goal.new_goalstatus === 3
+                ) {
+
+                    atRiskCount++;
+
+                }
+
+            }
+        );
+
+
+        averageGap =
+            totalGap /
+            goalsRecords.length;
+
+
+        if (
+            averageGap <= 0
+        ) {
+
+            goalRisk = 0;
+
+        }
+        else if (
+            averageGap <= 10
+        ) {
+
+            goalRisk = 20;
+
+        }
+        else if (
+            averageGap <= 20
+        ) {
+
+            goalRisk = 40;
+
+        }
+        else if (
+            averageGap <= 30
+        ) {
+
+            goalRisk = 60;
+
+        }
+        else if (
+            averageGap <= 40
+        ) {
+
+            goalRisk = 80;
+
+        }
+        else {
+
+            goalRisk = 100;
+
+        }
+
+
+        if (
+            atRiskCount >= 2
+        ) {
+
+            goalRisk += 20;
+
+        }
+        else if (
+            atRiskCount === 1
+        ) {
+
+            goalRisk += 10;
+
+        }
+
+
+        goalRisk =
+            Math.min(
+                goalRisk,
+                100
+            );
+
+    }
+
+
+    // ========================================================
+    // TRAINING RISK
+    // ========================================================
+
+    var trainingRisk = 0;
+
+    var trainingPerformance = 0;
+
+    var averageCompletion = 0;
+
+    var averageAssessment = 0;
+
+    var averageApplication = 0;
+
+
+    if (
+        trainingRecords.length > 0
+    ) {
+
+        var totalCompletion = 0;
+
+        var totalAssessment = 0;
+
+        var totalApplication = 0;
+
+        var inProgressCount = 0;
+
+
+        trainingRecords.forEach(
+            function (training) {
+
+                totalCompletion +=
+                    Number(
+                        training.new_trainingcompletion || 0
+                    );
+
+
+                totalAssessment +=
+                    Number(
+                        training.new_trainingassessment || 0
+                    );
+
+
+                totalApplication +=
+                    Number(
+                        training.new_trainingapplication || 0
+                    );
+
+
+                if (
+                    training.new_trainingstatus === 2
+                ) {
+
+                    inProgressCount++;
+
+                }
+
+            }
+        );
+
+
+        averageCompletion =
+            totalCompletion /
+            trainingRecords.length;
+
+
+        averageAssessment =
+            totalAssessment /
+            trainingRecords.length;
+
+
+        averageApplication =
+            totalApplication /
+            trainingRecords.length;
+
+
+        trainingPerformance =
+            (averageCompletion * 0.40) +
+            (averageAssessment * 0.30) +
+            (averageApplication * 0.30);
+
+
+        trainingRisk =
+            100 -
+            trainingPerformance;
+
+
+        if (
+            inProgressCount > 0
+        ) {
+
+            trainingRisk += 5;
+
+        }
+
+
+        trainingRisk =
+            Math.min(
+                trainingRisk,
+                100
+            );
+
+    }
+
+
+    // ========================================================
+    // SUPPORT RISK
+    // ========================================================
+
+    var supportRisk = 0;
+
+
+    if (
+        visitRecords.length > 0
+    ) {
+
+        var totalUnresolvedIssues = 0;
+
+        var followUpRequired = false;
+
+        var visitsWithUnresolvedIssues = 0;
+
+
+        visitRecords.forEach(
+            function (visit) {
+
+                var unresolved =
+                    Number(
+                        visit.new_unresolvedissues || 0
+                    );
+
+
+                totalUnresolvedIssues +=
+                    unresolved;
+
+
+                if (
+                    unresolved > 0
+                ) {
+
+                    visitsWithUnresolvedIssues++;
+
+                }
+
+
+                if (
+                    visit.new_followuprequired === true
+                ) {
+
+                    followUpRequired = true;
+
+                }
+
+            }
+        );
+
+
+        if (
+            totalUnresolvedIssues === 0
+        ) {
+
+            supportRisk = 0;
+
+        }
+        else if (
+            totalUnresolvedIssues <= 2
+        ) {
+
+            supportRisk = 30;
+
+        }
+        else if (
+            totalUnresolvedIssues <= 4
+        ) {
+
+            supportRisk = 60;
+
+        }
+        else if (
+            totalUnresolvedIssues <= 6
+        ) {
+
+            supportRisk = 80;
+
+        }
+        else {
+
+            supportRisk = 100;
+
+        }
+
+
+        if (
+            followUpRequired
+        ) {
+
+            supportRisk += 10;
+
+        }
+
+
+        if (
+            visitsWithUnresolvedIssues > 1
+        ) {
+
+            supportRisk += 10;
+
+        }
+
+
+        supportRisk =
+            Math.min(
+                supportRisk,
+                100
+            );
+
+    }
+
+
+    // ========================================================
+    // IMPROVEMENT RISK
+    // ========================================================
+
+    var improvementRisk = 0;
+
+
+    if (
+        goalsRecords.length > 0
+    ) {
+
+        var totalImprovement = 0;
+
+
+        goalsRecords.forEach(
+            function (goal) {
+
+                var achievement =
+                    Number(
+                        goal.new_goalachievement || 0
+                    );
+
+
+                var previousAchievement =
+                    Number(
+                        goal.new_previousgoalachievement || 0
+                    );
+
+
+                totalImprovement +=
+                    achievement -
+                    previousAchievement;
+
+            }
+        );
+
+
+        averageImprovement =
+            totalImprovement /
+            goalsRecords.length;
+
+
+        if (
+            averageImprovement >= 15
+        ) {
+
+            improvementRisk = 0;
+
+        }
+        else if (
+            averageImprovement >= 10
+        ) {
+
+            improvementRisk = 10;
+
+        }
+        else if (
+            averageImprovement >= 5
+        ) {
+
+            improvementRisk = 25;
+
+        }
+        else if (
+            averageImprovement >= 0
+        ) {
+
+            improvementRisk = 50;
+
+        }
+        else {
+
+            improvementRisk = 80;
+
+        }
+
+    }
+
+
+    // ========================================================
+    // RESOURCE RISK
+    // ========================================================
+
+    var resourceRisk = 0;
+
+    var fundingUtilization = 0;
+
+
+    if (
+        fundingRecords.length > 0
+    ) {
+
+        var totalFundingReceived = 0;
+
+        var totalFundingUtilized = 0;
+
+
+        fundingRecords.forEach(
+            function (funding) {
+
+                totalFundingReceived +=
+                    Number(
+                        funding.new_fundingreceived || 0
+                    );
+
+
+                totalFundingUtilized +=
+                    Number(
+                        funding.new_fundingutilized || 0
+                    );
+
+            }
+        );
+
+
+        if (
+            totalFundingReceived > 0
+        ) {
+
+            fundingUtilization =
+                (
+                    totalFundingUtilized /
+                    totalFundingReceived
+                ) * 100;
+
+        }
+
+
+        if (
+            fundingUtilization >= 80
+        ) {
+
+            resourceRisk = 0;
+
+        }
+        else if (
+            fundingUtilization >= 60
+        ) {
+
+            resourceRisk = 25;
+
+        }
+        else if (
+            fundingUtilization >= 40
+        ) {
+
+            resourceRisk = 50;
+
+        }
+        else {
+
+            resourceRisk = 75;
+
+        }
+
+    }
+
+
+    // ========================================================
+    // FINAL PRIORITY SCORE
+    // ========================================================
+
+    var priorityScore =
+        (goalRisk * 0.30) +
+        (trainingRisk * 0.25) +
+        (supportRisk * 0.20) +
+        (improvementRisk * 0.15) +
+        (resourceRisk * 0.10);
+
+
+    priorityScore =
+        Number(
+            priorityScore.toFixed(2)
+        );
+
+
+    // ========================================================
+    // PRIORITY LEVEL
+    // ========================================================
+
+    var priorityLevel = "";
+
+
+    if (
+        priorityScore <= 39
+    ) {
+
+        priorityLevel = "Low";
+
+    }
+    else if (
+        priorityScore <= 69
+    ) {
+
+        priorityLevel = "Medium";
+
+    }
+    else {
+
+        priorityLevel = "High";
+
+    }
+
+
+    // ========================================================
+    // TRAINING IMPACT SCORE
+    // ========================================================
+
+    var trainingImpactScore = 0;
+
+    var goalImprovementScore = 0;
+
+
+    if (
+        trainingRecords.length > 0 &&
+        goalsRecords.length > 0
+    ) {
+
+        if (
+            averageImprovement >= 15
+        ) {
+
+            goalImprovementScore = 100;
+
+        }
+        else if (
+            averageImprovement >= 10
+        ) {
+
+            goalImprovementScore = 85;
+
+        }
+        else if (
+            averageImprovement >= 5
+        ) {
+
+            goalImprovementScore = 70;
+
+        }
+        else if (
+            averageImprovement >= 0
+        ) {
+
+            goalImprovementScore = 50;
+
+        }
+        else {
+
+            goalImprovementScore = 20;
+
+        }
+
+
+        trainingImpactScore =
+            (goalImprovementScore * 0.40) +
+            (averageAssessment * 0.30) +
+            (averageApplication * 0.20) +
+            (averageCompletion * 0.10);
+
+
+        trainingImpactScore =
+            Number(
+                trainingImpactScore.toFixed(2)
+            );
+
+    }
+
+
+    return {
+
+        priorityScore:
+            priorityScore,
+
+        priorityLevel:
+            priorityLevel,
+
+        trainingImpactScore:
+            trainingImpactScore,
+
+        priorityFactors: {
+
+            goalRisk:
+                Number(
+                    goalRisk.toFixed(2)
+                ),
+
+            trainingRisk:
+                Number(
+                    trainingRisk.toFixed(2)
+                ),
+
+            supportRisk:
+                Number(
+                    supportRisk.toFixed(2)
+                ),
+
+            improvementRisk:
+                Number(
+                    improvementRisk.toFixed(2)
+                ),
+
+            resourceRisk:
+                Number(
+                    resourceRisk.toFixed(2)
+                )
+
+        },
+
+        supportingMetrics: {
+
+            averageGap:
+                Number(
+                    averageGap.toFixed(2)
+                ),
+
+            averageImprovement:
+                Number(
+                    averageImprovement.toFixed(2)
+                ),
+
+            averageCompletion:
+                Number(
+                    averageCompletion.toFixed(2)
+                ),
+
+            averageAssessment:
+                Number(
+                    averageAssessment.toFixed(2)
+                ),
+
+            averageApplication:
+                Number(
+                    averageApplication.toFixed(2)
+                ),
+
+            fundingUtilization:
+                Number(
+                    fundingUtilization.toFixed(2)
+                )
+
+        }
+
+    };
+
+}
+
+
+// ============================================================
+// DISPLAY CALCULATED SCORES
+// ============================================================
+
+function showScoreBox(scores) {
+
+    var chat =
+        document.getElementById("chat");
+
+
+    var scoreCard =
+        document.createElement("div");
+
+
+    scoreCard.className =
+        "score-card";
+
+
+    var header =
+        document.createElement("div");
+
+
+    header.className =
+        "score-card-header";
+
+
+    header.textContent =
+        "Assessment results";
+
+
+    scoreCard.appendChild(
+        header
+    );
+
+
+    var body =
+        document.createElement("div");
+
+
+    body.className =
+        "score-card-body";
+
+
+    function addScore(label, value) {
+
+        var item =
+            document.createElement("div");
+
+
+        item.className =
+            "score-item";
+
+
+        var labelSpan =
+            document.createElement("span");
+
+
+        labelSpan.className =
+            "score-label";
+
+
+        labelSpan.textContent =
+            label;
+
+
+        var valueSpan =
+            document.createElement("span");
+
+
+        valueSpan.className =
+            "score-value";
+
+
+        valueSpan.textContent =
+            value;
+
+
+        item.appendChild(
+            labelSpan
+        );
+
+
+        item.appendChild(
+            valueSpan
+        );
+
+
+        body.appendChild(
+            item
+        );
+
+    }
+
+
+    addScore(
+        "Priority Score",
+        scores.priorityScore
+    );
+
+
+    addScore(
+        "Priority Level",
+        scores.priorityLevel
+    );
+
+
+    addScore(
+        "Training Impact Score",
+        scores.trainingImpactScore
+    );
+
+
+    var divider =
+        document.createElement("hr");
+
+
+    divider.className =
+        "score-divider";
+
+
+    body.appendChild(
+        divider
+    );
+
+
+    addScore(
+        "Goal Risk",
+        scores.priorityFactors.goalRisk
+    );
+
+
+    addScore(
+        "Training Risk",
+        scores.priorityFactors.trainingRisk
+    );
+
+
+    addScore(
+        "Support Risk",
+        scores.priorityFactors.supportRisk
+    );
+
+
+    addScore(
+        "Improvement Risk",
+        scores.priorityFactors.improvementRisk
+    );
+
+
+    addScore(
+        "Resource Risk",
+        scores.priorityFactors.resourceRisk
+    );
+
+
+    scoreCard.appendChild(
+        body
+    );
+
+
+    chat.appendChild(
+        scoreCard
+    );
+
+
+    chat.scrollTop =
+        chat.scrollHeight;
+
+}
+
+
+// ============================================================
+// UPDATE CRM RECORD
+// ============================================================
+
+async function updateCRMWithAnalysis(
+    siteId,
+    priorityScore,
+    priorityLevel,
+    trainingImpactScore,
+    aiSummary
+) {
+
+    try {
+
+        if (!siteId) {
+
+            console.warn(
+                "No site ID available for CRM update."
+            );
+
+            return false;
+
+        }
+
+
+        var cleanSiteId =
+            siteId.replace(
+                /[{}]/g,
+                ""
+            );
+
+
+        var priorityChoiceValue;
+
+
+        if (
+            priorityLevel === "Low"
+        ) {
+
+            priorityChoiceValue =
+                100000000;
+
+        }
+        else if (
+            priorityLevel === "Medium"
+        ) {
+
+            priorityChoiceValue =
+                100000001;
+
+        }
+        else if (
+            priorityLevel === "High"
+        ) {
+
+            priorityChoiceValue =
+                100000002;
+
+        }
+        else {
+
+            throw new Error(
+                "Invalid priority level: " +
+                priorityLevel
+            );
+
+        }
+
+
+        var updateData = {
+
+            new_priorityscore:
+                Number(priorityScore),
+
+            new_prioritylevel:
+                priorityChoiceValue,
+
+            new_trainingimpactscore:
+                Number(trainingImpactScore),
+
+            new_airecommendation:
+                aiSummary
+
+        };
+
+
+        console.log(
+            "CRM Update Data:",
+            updateData
+        );
+
+
+        await window.parent.Xrm.WebApi.updateRecord(
+            "new_childcaresite",
+            cleanSiteId,
+            updateData
+        );
+
+
+        console.log(
+            "CRM AI assessment fields updated successfully."
+        );
+
+
+        return true;
+
+    }
+    catch (error) {
+
+        console.error(
+            "CRM write-back error:",
+            error
+        );
+
+
+        addMessage(
+            "AI Assistant",
+            "The assessment was generated, but the CRM fields could not be updated."
+        );
+
+
+        return false;
+
+    }
+
+}
+
+
+// ============================================================
+// SHOW CRM UPDATE CONFIRMATION
+// ============================================================
+
+function showCRMUpdateMessage() {
+
+    var chat =
+        document.getElementById("chat");
+
+
+    var crmDiv =
+        document.createElement("div");
+
+
+    crmDiv.className =
+        "crm-update";
+
+
+    crmDiv.innerHTML =
+        "<span>✓</span>" +
+        "<span>Assessment saved to CRM</span>";
+
+
+    chat.appendChild(
+        crmDiv
+    );
+
+
+    chat.scrollTop =
+        chat.scrollHeight;
+
+}
+
+
+// ============================================================
+// SEND MESSAGE
+// ============================================================
+
+async function sendMessage() {
+
+    var input =
+        document.getElementById(
+            "userInput"
+        );
+
+
+    var button =
+        document.getElementById(
+            "sendButton"
+        );
+
+
+    var message =
+        input.value.trim();
+
+
+    if (!message) {
+
+        return;
+
+    }
+
+
+    if (!functionUrl) {
+
+        addMessage(
+            "AI Assistant",
+            "The assistant is not configured yet. Please configure the AnalyzeCenterChat Azure Function URL."
+        );
+
+        return;
+
+    }
+
+
+    addMessage(
+        "You",
+        message
+    );
+
+
+    input.value = "";
+
+    button.disabled = true;
+
+
+    showThinkingMessage();
+
+
+    var scores = null;
+
+
+    try {
+
+
+        // ====================================================
+        // STEP 1: FIND CENTER
+        // ====================================================
+
+        var detectedSite =
+            await findSiteFromMessage(
+                message
+            );
+
+
+        // ====================================================
+        // STEP 2: REMEMBER CENTER
+        // ====================================================
+
+        if (detectedSite) {
+
+            currentSite =
+                detectedSite.new_sitename;
+
+            currentSiteId =
+                detectedSite.new_childcaresiteid;
+
+
+            updateCenterContext(
+                currentSite
+            );
+
+        }
+
+
+        // ====================================================
+        // STEP 3: CHECK CENTER
+        // ====================================================
+
+        if (!currentSiteId) {
+
+            removeThinkingMessage();
+
+
+            addMessage(
+                "AI Assistant",
+                "Please mention the child care center you want to know about."
+            );
+
+
+            return;
+
+        }
+
+
+        // ====================================================
+        // STEP 4: DETECT QUESTION TYPE
+        // ====================================================
+
+        var questionType =
+            detectQuestionType(
+                message
+            );
+
+
+        // ====================================================
+        // STEP 5: BASIC PROMPT DATA
+        // ====================================================
+
+        var promptData = {
+
+            siteName:
+                currentSite,
+
+            question:
+                message,
+
+            questionType:
+                questionType
+
+        };
+
+
+        // ====================================================
+        // STEP 6: GET BASIC SITE DATA
+        // ====================================================
+
+        var siteData =
+            await getSiteData(
+                currentSiteId
+            );
+
+
+        promptData.site = {
+
+            siteName:
+                siteData.new_sitename,
+
+            status:
+                siteData.new_sitestatus,
+
+            capacity:
+                siteData.new_capacity,
+
+            currentEnrollment:
+                siteData.new_currentenrollment
+
+        };
+
+
+        // ====================================================
+        // ANALYSIS REQUEST
+        // ====================================================
+
+        if (
+            questionType === "analysis"
+        ) {
+
+            removeThinkingMessage();
+
+            showThinkingMessage();
+
+
+            var trainingRecords =
+                await getTrainingData(
+                    currentSiteId
+                );
+
+
+            var goalsRecords =
+                await getGoalsData(
+                    currentSiteId
+                );
+
+
+            var visitRecords =
+                await getTrainerVisits(
+                    currentSiteId
+                );
+
+
+            var fundingRecords =
+                await getFundingData(
+                    currentSiteId
+                );
+
+
+            // ------------------------------------------------
+            // CALCULATE SCORES
+            // ------------------------------------------------
+
+            scores =
+                calculateScores(
+                    trainingRecords,
+                    goalsRecords,
+                    visitRecords,
+                    fundingRecords
+                );
+
+
+            removeThinkingMessage();
+
+
+            addMessage(
+                "AI Assistant",
+                "I've reviewed the available information for " +
+                currentSite +
+                "."
+            );
+
+
+            showScoreBox(
+                scores
+            );
+
+
+            promptData.scores = {
+
+                priorityScore:
+                    scores.priorityScore,
+
+                priorityLevel:
+                    scores.priorityLevel,
+
+                trainingImpactScore:
+                    scores.trainingImpactScore,
+
+                priorityFactors:
+                    scores.priorityFactors,
+
+                supportingMetrics:
+                    scores.supportingMetrics
+
+            };
+
+
+            promptData.training =
+                trainingRecords.map(
+                    function (training) {
+
+                        return {
+
+                            name:
+                                training.new_name,
+
+                            completion:
+                                training.new_trainingcompletion,
+
+                            assessment:
+                                training.new_trainingassessment,
+
+                            application:
+                                training.new_trainingapplication,
+
+                            status:
+                                training.new_trainingstatus
+
+                        };
+
+                    }
+                );
+
+
+            promptData.goals =
+                goalsRecords.map(
+                    function (goal) {
+
+                        return {
+
+                            name:
+                                goal.new_name,
+
+                            target:
+                                goal.new_goaltarget,
+
+                            achievement:
+                                goal.new_goalachievement,
+
+                            previousAchievement:
+                                goal.new_previousgoalachievement,
+
+                            status:
+                                goal.new_goalstatus
+
+                        };
+
+                    }
+                );
+
+
+            promptData.trainerVisits =
+                visitRecords.map(
+                    function (visit) {
+
+                        return {
+
+                            trainerName:
+                                visit.new_trainername,
+
+                            unresolvedIssues:
+                                visit.new_unresolvedissues,
+
+                            followUpRequired:
+                                visit.new_followuprequired,
+
+                            followUpDate:
+                                visit.new_followupdate
+
+                        };
+
+                    }
+                );
+
+
+            promptData.funding =
+                fundingRecords.map(
+                    function (funding) {
+
+                        return {
+
+                            name:
+                                funding.new_name,
+
+                            received:
+                                funding.new_fundingreceived,
+
+                            utilized:
+                                funding.new_fundingutilized,
+
+                            utilization:
+                                funding.new_fundingutilization,
+
+                            purpose:
+                                funding.new_fundingpurpose
+
+                        };
+
+                    }
+                );
+
+        }
+
+
+        // ====================================================
+        // TRAINING QUESTION
+        // ====================================================
+
+        if (
+            questionType === "training"
+        ) {
+
+            var training =
+                await getTrainingData(
+                    currentSiteId
+                );
+
+
+            promptData.training =
+                training.map(
+                    function (item) {
+
+                        return {
+
+                            name:
+                                item.new_name,
+
+                            completion:
+                                item.new_trainingcompletion,
+
+                            assessment:
+                                item.new_trainingassessment,
+
+                            application:
+                                item.new_trainingapplication,
+
+                            status:
+                                item.new_trainingstatus
+
+                        };
+
+                    }
+                );
+
+        }
+
+
+        // ====================================================
+        // GOALS QUESTION
+        // ====================================================
+
+        if (
+            questionType === "goals"
+        ) {
+
+            var goals =
+                await getGoalsData(
+                    currentSiteId
+                );
+
+
+            promptData.goals =
+                goals.map(
+                    function (item) {
+
+                        return {
+
+                            name:
+                                item.new_name,
+
+                            target:
+                                item.new_goaltarget,
+
+                            achievement:
+                                item.new_goalachievement,
+
+                            previousAchievement:
+                                item.new_previousgoalachievement,
+
+                            status:
+                                item.new_goalstatus
+
+                        };
+
+                    }
+                );
+
+        }
+
+
+        // ====================================================
+        // TRAINER QUESTION
+        // ====================================================
+
+        if (
+            questionType === "trainer"
+        ) {
+
+            var trainers =
+                await getTrainerVisits(
+                    currentSiteId
+                );
+
+
+            promptData.trainerVisits =
+                trainers.map(
+                    function (visit) {
+
+                        return {
+
+                            trainerName:
+                                visit.new_trainername,
+
+                            unresolvedIssues:
+                                visit.new_unresolvedissues,
+
+                            followUpRequired:
+                                visit.new_followuprequired,
+
+                            followUpDate:
+                                visit.new_followupdate
+
+                        };
+
+                    }
+                );
+
+        }
+
+
+        // ====================================================
+        // SUPPORT QUESTION
+        // ====================================================
+
+        if (
+            questionType === "support"
+        ) {
+
+            var support =
+                await getTrainerVisits(
+                    currentSiteId
+                );
+
+
+            promptData.trainerVisits =
+                support.map(
+                    function (visit) {
+
+                        return {
+
+                            trainerName:
+                                visit.new_trainername,
+
+                            unresolvedIssues:
+                                visit.new_unresolvedissues,
+
+                            followUpRequired:
+                                visit.new_followuprequired,
+
+                            followUpDate:
+                                visit.new_followupdate
+
+                        };
+
+                    }
+                );
+
+        }
+
+
+        // ====================================================
+        // FUNDING QUESTION
+        // ====================================================
+
+        if (
+            questionType === "funding"
+        ) {
+
+            var funding =
+                await getFundingData(
+                    currentSiteId
+                );
+
+
+            promptData.funding =
+                funding.map(
+                    function (item) {
+
+                        return {
+
+                            name:
+                                item.new_name,
+
+                            received:
+                                item.new_fundingreceived,
+
+                            utilized:
+                                item.new_fundingutilized,
+
+                            utilization:
+                                item.new_fundingutilization,
+
+                            purpose:
+                                item.new_fundingpurpose
+
+                        };
+
+                    }
+                );
+
+        }
+
+
+        // ====================================================
+        // BUILD AI PROMPT
+        // ====================================================
+
+        var aiPrompt = `
+
+You are the Child Care Center Support Advisor.
+
+You are having a natural conversation with a CRM user.
+
+Analyze only the selected child care center.
+
+CENTER:
+${currentSite}
+
+USER QUESTION:
+${message}
+
+QUESTION TYPE:
+${questionType}
+
+CRM DATA:
+${JSON.stringify(
+    promptData,
+    null,
+    2
+)}
+
+
+IMPORTANT DATA RULES:
+
+1. Use only the CRM data provided above.
+
+2. Do not invent information.
+
+3. If information is missing, clearly say that it is not available.
+
+4. Focus only on the selected child care center.
+
+5. Do not compare this center with other centers unless the user explicitly asks for a comparison.
+
+
+CONVERSATIONAL STYLE:
+
+1. Respond naturally, like a helpful CRM support assistant.
+
+2. Do not start the response with "AI Analysis:".
+
+3. Do not use Markdown headings.
+
+4. Do not use "###".
+
+5. Do not use **bold** formatting.
+
+6. Do not use *italic* formatting.
+
+7. Do not use unnecessary labels.
+
+8. Do not use report-style formatting for simple questions.
+
+9. For simple questions, answer directly in 1–3 sentences when possible.
+
+10. If the user asks for a list, simple bullet points are acceptable.
+
+11. Do not put asterisks around names or values.
+
+12. Do not repeat the question.
+
+13. Keep the response concise and easy to read inside a chat window.
+
+
+FOR ANALYSIS REQUESTS:
+
+The Priority Score and Training Impact Score have already been calculated by the JavaScript scoring engine.
+
+Treat these supplied JavaScript scores as AUTHORITATIVE.
+
+DO NOT recalculate the scores.
+
+DO NOT modify the scores.
+
+DO NOT override the scores.
+
+DO NOT replace the scores with your own scoring.
+
+Use the supplied scores and factor values to explain the center's situation.
+
+
+PRIORITY SCORE:
+
+0–39 = Low
+
+40–69 = Medium
+
+70–100 = High
+
+
+TRAINING IMPACT SCORE:
+
+0–39 = Low
+
+40–69 = Moderate
+
+70–100 = High
+
+
+PRIORITY FACTORS:
+
+Goal Risk
+Training Risk
+Support Risk
+Improvement Risk
+Resource Risk
+
+
+IMPORTANT DISTINCTION:
+
+Training Impact measures training-related performance and outcome improvement.
+
+Priority measures the overall level of need/risk across goals, training, support, improvement and resources.
+
+Priority and Training Impact can therefore have different values.
+
+Do not assume that a high Training Impact Score means the center has low overall priority.
+
+Do not assume that a high Priority Score means training is ineffective.
+
+
+RECOMMENDATION RULES:
+
+- Recommendations must be proportional to the available evidence.
+- Use cautious evidence-based language.
+- Use phrases such as:
+  "The data suggests..."
+  "This may indicate..."
+  "The center may benefit from..."
+  "Further investigation may be useful..."
+- Do not claim that the data is incorrect or unreliable.
+- Do not recommend replacing trainers without supporting evidence.
+- Do not make major decisions without supporting evidence.
+- Do not invent missing information.
+
+
+FOR ANALYSIS RESPONSES:
+
+Provide a concise conversational assessment.
+
+You may organize the response into short paragraphs for:
+Priority Assessment
+Training Impact
+Key Factors
+Recommended Action
+
+However, do NOT use Markdown headings, "#" symbols, asterisks, or bold formatting.
+
+For example:
+
+Little Stars currently has a Medium Priority Score of 41.54. The main factor contributing to the overall priority is the support risk, which is 80.
+
+The Training Impact Score is 69.33, indicating Moderate training impact. Training participation is relatively strong, while application of learning may require additional support.
+
+The center may benefit from prioritizing follow-up on unresolved trainer issues and monitoring progress against the enrollment and staff performance goals.
+
+
+FOR NON-ANALYSIS QUESTIONS:
+
+Answer the user's specific question directly and concisely.
+
+Do not provide a full center analysis unless the user asks for it.
+
+`;
+
+
+        console.log(
+            "AI Prompt:",
+            aiPrompt
+        );
+
+
+        // ====================================================
+        // CALL AZURE FUNCTION
+        // ====================================================
+
+        var response =
+            await fetch(
+                functionUrl,
+                {
+
+                    method: "POST",
+
+                    headers: {
+
+                        "Content-Type":
+                            "application/json"
+
+                    },
+
+                    body:
+                        JSON.stringify({
+
+                            prompt:
+                                aiPrompt
+
+                        })
+
+                }
+            );
+
+
+        var result =
+            await response.json();
+
+
+        console.log(
+            "Azure Function Response:",
+            result
+        );
+
+
+        if (!response.ok) {
+
+            throw new Error(
+                result.error ||
+                "Azure Function request failed."
+            );
+
+        }
+
+
+        if (!result.response) {
+
+            throw new Error(
+                "Azure Function returned no AI response."
+            );
+
+        }
+
+
+        // ====================================================
+        // DISPLAY AI RESPONSE
+        // ====================================================
+
+        removeThinkingMessage();
+
+
+        addMessage(
+            "AI Assistant",
+            result.response
+        );
+
+
+        // ====================================================
+        // WRITE BACK TO CRM
+        // ====================================================
+
+        if (
+            questionType === "analysis" &&
+            scores !== null &&
+            result.summary
+        ) {
+
+            var crmUpdated =
+                await updateCRMWithAnalysis(
+
+                    currentSiteId,
+
+                    scores.priorityScore,
+
+                    scores.priorityLevel,
+
+                    scores.trainingImpactScore,
+
+                    cleanAIResponse(
+                        result.summary
+                    )
+
+                );
+
+
+            if (crmUpdated) {
+
+                showCRMUpdateMessage();
+
+            }
+
+        }
+
+    }
+    catch (error) {
+
+        console.error(
+            "Chat error:",
+            error
+        );
+
+
+        removeThinkingMessage();
+
+
+        addMessage(
+            "AI Assistant",
+            "Sorry, I couldn't complete that request. Please try again."
+        );
+
+    }
+    finally {
+
+        button.disabled = false;
+
+        input.focus();
+
+    }
+
+}
+
+
+</script>
+
+</body>
+
+</html>
